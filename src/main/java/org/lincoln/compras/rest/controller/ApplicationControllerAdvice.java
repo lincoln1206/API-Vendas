@@ -2,6 +2,7 @@ package org.lincoln.compras.rest.controller;
 
 import org.lincoln.compras.exception.PedidoNotFoundException;
 import org.lincoln.compras.exception.RegraNegocioException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -37,6 +38,12 @@ public class ApplicationControllerAdvice {
                 .map( erro -> erro.getDefaultMessage())
                 .collect(Collectors.toList());
        return new ApiErrors(errors);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    @ResponseStatus(UNAUTHORIZED)
+    public ApiErrors handleUsernameNotFoundException(UsernameNotFoundException ex){
+        return new ApiErrors(ex.getMessage());
     }
 
 }

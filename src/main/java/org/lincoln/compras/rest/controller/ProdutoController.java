@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.lincoln.compras.domain.entity.Produto;
-import org.lincoln.compras.domain.repository.Produtos;
+import org.lincoln.compras.domain.repository.ProdutoRepository;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -16,15 +16,15 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequestMapping("/api/produtos")
 public class ProdutoController {
-    private Produtos produtos;
+    private ProdutoRepository produtoRepository;
 
-    public ProdutoController(Produtos produtos) {
-        this.produtos = produtos;
+    public ProdutoController(ProdutoRepository produtoRepository) {
+        this.produtoRepository = produtoRepository;
     }
 
     @GetMapping("{id}")
     public Produto getProdutoById(@PathVariable Integer id) {
-        return produtos
+        return produtoRepository
                 .findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não econtrado"));
     }
@@ -32,15 +32,15 @@ public class ProdutoController {
     @PostMapping
     @ResponseStatus(CREATED)
     public Produto save(@RequestBody @Valid Produto produto) {
-        return produtos.save(produto);
+        return produtoRepository.save(produto);
     }
 
     @DeleteMapping("{id}")
     @ResponseStatus(NO_CONTENT)
     public void delete(@PathVariable Integer id) {
-        produtos.findById(id)
+        produtoRepository.findById(id)
                 .map(produto -> {
-                    produtos.delete(produto);
+                    produtoRepository.delete(produto);
                     return produto;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não econtrado"));
@@ -50,11 +50,11 @@ public class ProdutoController {
     @ResponseStatus(NO_CONTENT)
     public void update(@PathVariable Integer id,
                        @RequestBody @Valid Produto produto) {
-        produtos
+        produtoRepository
                 .findById(id)
                 .map(produtoExistente -> {
                     produto.setId(produtoExistente.getId());
-                    produtos.save(produto);
+                    produtoRepository.save(produto);
                     return produtoExistente;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não econtrado"));
@@ -68,6 +68,6 @@ public class ProdutoController {
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
 
         Example<Produto> example = Example.of(filtro, matcher);
-        return produtos.findAll(example);
+        return produtoRepository.findAll(example);
     }
 }

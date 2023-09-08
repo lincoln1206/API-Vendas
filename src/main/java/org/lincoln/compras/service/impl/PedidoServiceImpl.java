@@ -3,10 +3,10 @@ package org.lincoln.compras.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.lincoln.compras.domain.entity.ItemPedido;
 import org.lincoln.compras.domain.enums.StatusPedido;
-import org.lincoln.compras.domain.repository.Clientes;
-import org.lincoln.compras.domain.repository.ItensPedidos;
-import org.lincoln.compras.domain.repository.Pedidos;
-import org.lincoln.compras.domain.repository.Produtos;
+import org.lincoln.compras.domain.repository.ClienteRepository;
+import org.lincoln.compras.domain.repository.ItemPedidoRepository;
+import org.lincoln.compras.domain.repository.PedidoRepository;
+import org.lincoln.compras.domain.repository.ProdutoRepository;
 import org.lincoln.compras.exception.PedidoNotFoundException;
 import org.lincoln.compras.service.PedidoService;
 import org.springframework.stereotype.Service;
@@ -27,16 +27,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PedidoServiceImpl implements PedidoService {
 
-    private final Pedidos pedidosRepository;
-    private final Clientes clientesRepository;
-    private final Produtos produtosRepository;
-    private final ItensPedidos itensPedidosRepository;
+    private final PedidoRepository pedidoRepositoryRepository;
+    private final ClienteRepository clienteRepositoryRepository;
+    private final ProdutoRepository produtoRepositoryRepository;
+    private final ItemPedidoRepository itemPedidoRepositoryRepository;
 
     @Override
     @Transactional
     public Pedido salvar(PedidoDTO dto) {
         Integer idCliente = dto.getCliente();
-        Cliente cliente = clientesRepository
+        Cliente cliente = clienteRepositoryRepository
                 .findById(idCliente)
                 .orElseThrow( () -> new RegraNegocioException("Código de cliente inválido: " + idCliente ));
 
@@ -47,8 +47,8 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setStatus(StatusPedido.REALIZADO);
 
         List<ItemPedido> itensPedidos = converterItens(pedido, dto.getItens());
-        pedidosRepository.save(pedido);
-        itensPedidosRepository.saveAll(itensPedidos);
+        pedidoRepositoryRepository.save(pedido);
+        itemPedidoRepositoryRepository.saveAll(itensPedidos);
         pedido.setItens(itensPedidos);
 
         return pedido;
@@ -56,17 +56,17 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public Optional<Pedido> obterPedidoCompleto(Integer id) {
-        return pedidosRepository.findByIdFetchItens(id);
+        return pedidoRepositoryRepository.findByIdFetchItens(id);
     }
 
     @Override
     @Transactional
     public void atualizaStatus(Integer id, StatusPedido statusPedido) {
-        pedidosRepository
+        pedidoRepositoryRepository
                 .findById(id)
                 .map( pedido -> {
                     pedido.setStatus(statusPedido);
-                    return pedidosRepository.save(pedido);
+                    return pedidoRepositoryRepository.save(pedido);
                 }).orElseThrow( () -> new PedidoNotFoundException());
     }
 
@@ -79,7 +79,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .stream()
                 .map(dto -> {
                     Integer idProduto = dto.getProduto();
-                    Produto produto = produtosRepository
+                    Produto produto = produtoRepositoryRepository
                             .findById(idProduto)
                             .orElseThrow( () -> new RegraNegocioException("Código de produto inválido: " + idProduto));;
 
